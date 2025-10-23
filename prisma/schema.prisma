@@ -1,0 +1,459 @@
+// Red Bull Racing Meal Booking Platform - Prisma Schema
+// Enterprise-grade multi-tenant architecture with payment gateway configuration
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============= AUTHENTICATION & USERS =============
+
+model User {
+  id        String  @id @default(cuid())
+  email     String  @unique
+  password  String? // Nullable for OAuth users
+  role      Role    @default(END_USER)
+  firstName String
+  lastName  String
+
+  // Payment integration fields
+  badgeCode        String? // RFID/Badge access
+  ticketCode       String? // Edenred Ticket Restaurant
+  eneredCode       String? // Endered buoni pasto
+  stripeCustomerId String? // Stripe Customer ID
+
+  // User preferences
+  department          String?
+  dietaryRestrictions Json? // {allergies: [], preferences: []}
+
+  // Employee-specific fields (for END_USER role)
+  position        String?  // Job title/position
+  monthlyBudget   Int      @default(0) // Monthly meal budget in cents
+  spentThisMonth  Int      @default(0) // Current month spending in cents
+  isActive        Boolean  @default(true) // Employee active status
+
+  // Relations
+  accounts Account[]
+  sessions Session[]
+
+  // Audit
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastLoginAt DateTime?
+  Booking     Booking[]
+
+  @@index([email])
+  @@index([role])
+  @@index([isActive])
+  @@index([department])
+  @@map("users")
+}
+
+enum Role {
+  SUPER_ADMIN
+  KITCHEN_ADMIN
+  CUSTOMER_ADMIN
+  END_USER
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// ============= PAYMENT GATEWAY CONFIGURATION =============
+
+model PaymentGatewayConfig {
+  id          String         @id @default(cuid())
+  gateway     PaymentGateway
+  environment Environment    @default(SANDBOX)
+  isActive    Boolean        @default(false)
+
+  // Encrypted API credentials (stored as JSON)
+  credentials Json // {keyId, apiKey, secretKey, etc.}
+
+  // Configuration
+  settings   Json? // Gateway-specific settings
+  webhookUrl String?
+
+  // Testing & Debug
+  lastTestedAt DateTime?
+  testResults  Json? // Last test execution results
+  debugMode    Boolean   @default(true)
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+
+  @@unique([gateway, environment])
+  @@index([gateway])
+  @@index([isActive])
+  @@map("payment_gateway_configs")
+}
+
+enum PaymentGateway {
+  NEXY
+  SATISPAY
+  STRIPE
+  TICKET_EDENRED
+}
+
+enum Environment {
+  SANDBOX
+  PRODUCTION
+}
+
+model PaymentLog {
+  id           String         @id @default(cuid())
+  gateway      PaymentGateway
+  endpoint     String
+  method       String // GET, POST, etc.
+  requestData  Json?
+  responseData Json?
+  statusCode   Int?
+  duration     Int? // milliseconds
+  error        String?        @db.Text
+  createdAt    DateTime       @default(now())
+
+  @@index([gateway])
+  @@index([createdAt])
+  @@map("payment_logs")
+}
+
+// ============= KITCHEN MANAGEMENT =============
+
+model Recipe {
+  id           String         @id @default(cuid())
+  name         String
+  description  String?        @db.Text
+  category     RecipeCategory
+  ingredients  Json // [{name, quantity, unit, inranCode?}]
+  instructions String         @db.Text
+  prepTime     Int // minutes
+  cookTime     Int // minutes
+  servings     Int
+  portionSize  Int? // grams per portion
+  calories     Int? // Deprecated - use nutritionalValues.energy_kcal
+  allergens    String[] // Array of allergen names (EU Regulation 1169/2011)
+  imageUrl     String?
+  isAvailable  Boolean        @default(true)
+  isVegetarian Boolean        @default(false)
+  isVegan      Boolean        @default(false)
+  isGlutenFree Boolean        @default(false)
+
+  // INRAN/CREA Nutritional Data (per 100g edible portion)
+  // Structure: {energy_kj, energy_kcal, water, protein, carbohydrates, fats, fiber, sodium, ...}
+  // Full spec: see src/lib/inran-nutrition.ts
+  nutritionalValues Json? // CREA/INRAN standard nutritional composition
+  inranCode         String? // Optional reference to INRAN/CREA food database code
+  nutritionalSource String? @default("MANUAL") // INRAN | CREA | MANUAL | CALCULATED
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+
+  @@index([category])
+  @@index([isAvailable])
+  @@index([nutritionalSource])
+  @@map("recipes")
+}
+
+enum RecipeCategory {
+  APPETIZER // Antipasti
+  FIRST_COURSE // Primi
+  SECOND_COURSE // Secondi
+  SIDE_DISH // Contorni
+  DESSERT // Dolci/Frutta
+  BEVERAGE // Bevande
+  EXTRA // Extra (snacks, special requests)
+}
+
+model Menu {
+  id        String   @id @default(cuid())
+  name      String
+  startDate DateTime @db.Date // Data inizio validità menu
+  endDate   DateTime @db.Date // Data fine validità menu
+  mealType  MealType
+  menuType  MenuType @default(STANDARD) // Tipo menu (standard, vegetariano, ecc.)
+
+  // Multi-course structure (JSON)
+  // Format: {
+  //   antipasto: [{recipeId, recipeName, quantity}],
+  //   primo: [{recipeId, recipeName, quantity}],
+  //   secondo: [{recipeId, recipeName, quantity}],
+  //   contorno: [{recipeId, recipeName, quantity}],
+  //   dessert: [{recipeId, recipeName, quantity}],
+  //   extra: [{recipeId, recipeName, quantity}]
+  // }
+  courses Json
+
+  maxBookings     Int     @default(100)
+  currentBookings Int     @default(0)
+  isActive        Boolean @default(true)
+
+  // Nutritional summary (auto-calculated from recipes)
+  nutritionalSummary Json? // Aggregate nutritional values
+  targetDiners       Int? // Expected number of diners
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+
+  @@index([startDate, endDate])
+  @@index([mealType])
+  @@index([menuType])
+  @@index([isActive])
+  @@map("menus")
+}
+
+enum MenuType {
+  STANDARD
+  VEGETARIAN
+  VEGAN
+  CELIAC
+  LOW_SODIUM
+}
+
+enum MealType {
+  BREAKFAST
+  LUNCH
+  DINNER
+  SNACK
+}
+
+model Booking {
+  id             String          @id @default(cuid())
+  userId         String
+  menuId         String
+  date           DateTime        @db.Date
+  mealType       MealType
+  totalPrice     Int // cents
+  paymentMethod  PaymentMethod?
+  paymentStatus  PaymentStatus   @default(PENDING)
+  paymentGateway PaymentGateway?
+  transactionId  String?
+  status         BookingStatus   @default(PENDING)
+  notes          String?         @db.Text
+
+  // Relations
+  user  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items BookingItem[]
+
+  // Timestamps
+  bookedAt    DateTime  @default(now())
+  confirmedAt DateTime?
+  cancelledAt DateTime?
+  completedAt DateTime?
+
+  @@index([userId])
+  @@index([menuId])
+  @@index([date])
+  @@index([status])
+  @@map("bookings")
+}
+
+// Granular booking items - one per selected recipe with quantity
+model BookingItem {
+  id             String         @id @default(cuid())
+  bookingId      String
+  recipeId       String
+  recipeName     String // Snapshot at booking time
+  recipeCategory RecipeCategory
+  quantity       Int            @default(1)
+  unitPrice      Int // cents
+  subtotal       Int // cents (quantity * unitPrice)
+
+  // Relations
+  booking Booking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([bookingId])
+  @@index([recipeId])
+  @@index([recipeCategory])
+  @@map("booking_items")
+}
+
+// Booking rules per category - defines limits per meal type
+model BookingRule {
+  id          String         @id @default(cuid())
+  mealType    MealType
+  category    RecipeCategory
+  minQuantity Int            @default(0) // Minimum items required
+  maxQuantity Int            @default(99) // Maximum items allowed
+  isRequired  Boolean        @default(false) // Must select at least one
+  isActive    Boolean        @default(true)
+
+  // Example: LUNCH + FIRST_COURSE: min=1, max=1, required=true
+  //          LUNCH + DESSERT: min=0, max=2, required=false
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([mealType, category])
+  @@index([mealType])
+  @@index([isActive])
+  @@map("booking_rules")
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  BADGE
+  TICKET_RESTAURANT
+  SATISPAY
+  NEXY
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+// ============= AUDIT & SYSTEM =============
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String // "order.created", "menu.updated", etc.
+  entity    String // "Order", "Recipe", etc.
+  entityId  String?
+  changes   Json? // Before/after values
+  ipAddress String?
+  userAgent String?  @db.Text
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ============= GROUPS & NOTIFICATIONS =============
+
+model Group {
+  id          String   @id @default(cuid())
+  name        String
+  description String?  @db.Text
+  customerId  String? // For multi-tenant support
+  isActive    Boolean  @default(true)
+
+  // Relations
+  members GroupMember[]
+
+  // Audit
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String?
+
+  @@index([customerId])
+  @@index([isActive])
+  @@map("groups")
+}
+
+model GroupMember {
+  id       String @id @default(cuid())
+  groupId  String
+  userId   String
+  role     String @default("MEMBER") // ADMIN, MEMBER
+
+  // Relations
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  // Audit
+  addedAt DateTime @default(now())
+  addedBy String?
+
+  @@unique([groupId, userId])
+  @@index([groupId])
+  @@index([userId])
+  @@map("group_members")
+}
+
+model Notification {
+  id      String           @id @default(cuid())
+  userId  String
+  type    NotificationType @default(INFO)
+  title   String
+  message String           @db.Text
+  read    Boolean          @default(false)
+
+  // Optional link/action
+  actionUrl String?
+  entityId  String?
+  entity    String? // "Booking", "Menu", etc.
+
+  // Audit
+  createdAt DateTime @default(now())
+  readAt    DateTime?
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
+  @@map("notifications")
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+  BOOKING
+  PAYMENT
+  SYSTEM
+}

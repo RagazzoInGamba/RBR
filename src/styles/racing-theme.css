@@ -1,0 +1,544 @@
+/**
+ * Red Bull Racing - Official Brand Design System
+ * Inspired by Oracle Red Bull Racing F1 Team
+ * WCAG 2.2 AA Compliant
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* ============================================
+     RED BULL RACING - PRIMARY COLORS
+     ============================================ */
+  
+  /* Navy Blue - Primary Brand */
+  --rbr-navy-dark: #001F5B;
+  --rbr-navy: #0600EF;
+  --rbr-navy-light: #1a2d6b;
+  --rbr-navy-lighter: #2d3f7f;
+  
+  /* Racing Red - Accent & Energy (Official Red Bull Racing) */
+  --rbr-red: #E30118;
+  --rbr-red-bright: #FF1E00;
+  --rbr-red-dark: #b30000;
+  --rbr-red-light: #ff3333;
+
+  /* Backgrounds - WCAG AAA Compliant (Lighter for better readability) */
+  --rbr-dark: #121212;
+  --rbr-dark-lighter: #1c1c1c;
+  --rbr-dark-card: #1a1a1a;
+  --rbr-dark-elevated: #242424;
+  
+  /* Text Colors - Will be overridden by theme */
+  --rbr-text-primary: #FFFFFF;
+  --rbr-text-secondary: #E5E5E5;
+  --rbr-text-muted: #9CA3AF;
+  --rbr-text-disabled: #6B7280;
+  
+  /* Border Colors */
+  --rbr-border: rgba(220, 0, 0, 0.2);
+  --rbr-border-light: rgba(220, 0, 0, 0.1);
+  
+  /* Accent Colors */
+  --rbr-accent-blue: #00D9FF;
+  --rbr-accent-yellow: #FFD700;
+  --rbr-accent-green: #00FF88;
+  
+  /* Gradients */
+  --rbr-gradient-primary: linear-gradient(135deg, var(--rbr-navy-dark) 0%, var(--rbr-navy) 100%);
+  --rbr-gradient-red: linear-gradient(135deg, var(--rbr-red-dark) 0%, var(--rbr-red-bright) 100%);
+  --rbr-gradient-speed: linear-gradient(90deg, transparent 0%, var(--rbr-accent-blue) 50%, transparent 100%);
+  --rbr-gradient-card: linear-gradient(135deg, rgba(220, 0, 0, 0.05) 0%, rgba(6, 0, 239, 0.05) 100%);
+  
+  /* Shadows */
+  --rbr-shadow-sm: 0 2px 4px rgba(220, 0, 0, 0.1);
+  --rbr-shadow-md: 0 4px 12px rgba(220, 0, 0, 0.15);
+  --rbr-shadow-lg: 0 8px 24px rgba(220, 0, 0, 0.2);
+  --rbr-shadow-xl: 0 12px 40px rgba(220, 0, 0, 0.25);
+  --rbr-shadow-glow: 0 0 20px rgba(6, 0, 239, 0.3);
+  
+  /* Border Radius */
+  --rbr-radius-sm: 0.375rem;
+  --rbr-radius-md: 0.5rem;
+  --rbr-radius-lg: 0.75rem;
+  --rbr-radius-xl: 1rem;
+  
+  /* Transitions */
+  --rbr-transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --rbr-transition-base: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  --rbr-transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+  
+  /* Z-Index Scale */
+  --rbr-z-dropdown: 1000;
+  --rbr-z-sticky: 1020;
+  --rbr-z-fixed: 1030;
+  --rbr-z-modal-backdrop: 1040;
+  --rbr-z-modal: 1050;
+  --rbr-z-popover: 1060;
+  --rbr-z-tooltip: 1070;
+}
+
+/* ============================================
+   TYPOGRAPHY
+   ============================================ */
+
+/* ============================================
+   THEME VARIANTS - WCAG 2.2 AAA COMPLIANT
+   ============================================ */
+
+.dark {
+  /* Backgrounds - WCAG AAA Compliant */
+  --rbr-dark: #121212;
+  --rbr-dark-lighter: #1c1c1c;
+  --rbr-dark-card: #1a1a1a;
+  --rbr-dark-elevated: #242424;
+  
+  /* Text Colors - Optimized for dark backgrounds */
+  --rbr-text-primary: #FFFFFF;
+  --rbr-text-secondary: #E5E5E5;
+  --rbr-text-muted: #9CA3AF;
+  --rbr-text-disabled: #6B7280;
+  
+  /* Borders */
+  --rbr-border: rgba(220, 0, 0, 0.2);
+  --rbr-border-light: rgba(220, 0, 0, 0.1);
+  
+  /* Card overlay */
+  --rbr-card-overlay: rgba(255, 255, 255, 0.05);
+}
+
+.light {
+  /* Backgrounds - Clean and professional */
+  --rbr-dark: #FFFFFF;
+  --rbr-dark-lighter: #F8F9FA;
+  --rbr-dark-card: #FFFFFF;
+  --rbr-dark-elevated: #F0F1F3;
+  
+  /* Text Colors - Optimized for light backgrounds */
+  --rbr-text-primary: #111827;
+  --rbr-text-secondary: #374151;
+  --rbr-text-muted: #6B7280;
+  --rbr-text-disabled: #9CA3AF;
+  
+  /* Borders - More visible in light mode */
+  --rbr-border: rgba(220, 0, 0, 0.2);
+  --rbr-border-light: rgba(220, 0, 0, 0.1);
+  
+  /* Card overlay */
+  --rbr-card-overlay: rgba(220, 0, 0, 0.03);
+  
+  /* Adjust Red Bull colors for light mode visibility */
+  --rbr-navy-adjusted: #0600EF;
+  --rbr-red-adjusted: #DC0000;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--rbr-text-primary);
+  background-color: var(--rbr-dark);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.font-heading {
+  font-family: 'Titillium Web', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.font-display {
+  font-family: 'Titillium Web', sans-serif;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+/* ============================================
+   RACING EFFECTS
+   ============================================ */
+
+.racing-border {
+  position: relative;
+  border: 1px solid rgba(220, 0, 0, 0.2);
+  background: var(--rbr-dark-card);
+}
+
+.racing-border::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--rbr-gradient-red);
+  opacity: 0;
+  transition: opacity var(--rbr-transition-base);
+}
+
+.racing-border:hover::before {
+  opacity: 1;
+}
+
+.racing-glow {
+  box-shadow: 0 0 20px rgba(220, 0, 0, 0.3),
+              0 0 40px rgba(6, 0, 239, 0.2);
+  transition: box-shadow var(--rbr-transition-base);
+}
+
+.racing-glow:hover {
+  box-shadow: 0 0 30px rgba(220, 0, 0, 0.5),
+              0 0 60px rgba(6, 0, 239, 0.3);
+}
+
+.speed-line {
+  position: relative;
+  overflow: hidden;
+}
+
+.speed-line::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -100%;
+  width: 100%;
+  height: 2px;
+  background: var(--rbr-gradient-speed);
+  transform: translateY(-50%);
+  animation: speed-line-animation 2s ease-in-out infinite;
+}
+
+@keyframes speed-line-animation {
+  0%, 100% {
+    left: -100%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    left: 100%;
+    opacity: 0;
+  }
+}
+
+.gradient-text {
+  background: var(--rbr-gradient-red);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ============================================
+   BUTTON VARIANTS
+   ============================================ */
+
+.btn-racing-primary {
+  background: var(--rbr-gradient-red);
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--rbr-radius-md);
+  border: none;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform var(--rbr-transition-fast), box-shadow var(--rbr-transition-fast);
+}
+
+.btn-racing-primary::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  transition: width var(--rbr-transition-base), height var(--rbr-transition-base);
+}
+
+.btn-racing-primary:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+.btn-racing-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--rbr-shadow-lg);
+}
+
+.btn-racing-primary:active {
+  transform: translateY(0);
+}
+
+.btn-racing-secondary {
+  background: transparent;
+  color: var(--rbr-red);
+  font-weight: 600;
+  padding: 0.75rem 1.5rem;
+  border-radius: var(--rbr-radius-md);
+  border: 2px solid var(--rbr-red);
+  cursor: pointer;
+  transition: all var(--rbr-transition-fast);
+}
+
+.btn-racing-secondary:hover {
+  background: var(--rbr-red);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: var(--rbr-shadow-md);
+}
+
+/* ============================================
+   CARD STYLES
+   ============================================ */
+
+.racing-card {
+  background: var(--rbr-dark-card);
+  border: 1px solid rgba(220, 0, 0, 0.1);
+  border-radius: var(--rbr-radius-lg);
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  transition: all var(--rbr-transition-base);
+}
+
+.racing-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: var(--rbr-gradient-card);
+  transition: left var(--rbr-transition-slow);
+  z-index: 0;
+}
+
+.racing-card:hover::before {
+  left: 0;
+}
+
+.racing-card:hover {
+  border-color: rgba(220, 0, 0, 0.3);
+  box-shadow: var(--rbr-shadow-lg);
+  transform: translateY(-4px);
+}
+
+.racing-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ============================================
+   LOADING & ANIMATIONS
+   ============================================ */
+
+@keyframes racing-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+.racing-pulse {
+  animation: racing-pulse 2s ease-in-out infinite;
+}
+
+@keyframes racing-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.racing-spin {
+  animation: racing-spin 1s linear infinite;
+}
+
+@keyframes racing-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.racing-slide-in {
+  animation: racing-slide-in var(--rbr-transition-base) ease-out;
+}
+
+@keyframes racing-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-racing-slide-up {
+  animation: racing-slide-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 4px var(--rbr-red);
+  }
+  50% {
+    opacity: 0.7;
+    box-shadow: 0 0 8px var(--rbr-red-bright);
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(220, 0, 0, 0.1) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s ease-in-out infinite;
+}
+
+@keyframes bounce-subtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.hover\:animate-bounce-subtle:hover {
+  animation: bounce-subtle 0.6s ease-in-out;
+}
+
+/* ============================================
+   UTILITY CLASSES
+   ============================================ */
+
+.bg-racing-gradient {
+  background: var(--rbr-gradient-primary);
+}
+
+.bg-racing-red-gradient {
+  background: var(--rbr-gradient-red);
+}
+
+.text-racing-red {
+  color: var(--rbr-red);
+}
+
+.text-racing-navy {
+  color: var(--rbr-navy);
+}
+
+.border-racing-red {
+  border-color: var(--rbr-red);
+}
+
+.shadow-racing {
+  box-shadow: var(--rbr-shadow-md);
+}
+
+.shadow-racing-lg {
+  box-shadow: var(--rbr-shadow-lg);
+}
+
+.shadow-racing-glow {
+  box-shadow: var(--rbr-shadow-glow);
+}
+
+/* ============================================
+   SCROLLBAR STYLING
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--rbr-dark-lighter);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--rbr-red);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--rbr-red-bright);
+}
+
+/* ============================================
+   ACCESSIBILITY
+   ============================================ */
+
+.focus-visible:focus-visible {
+  outline: 2px solid var(--rbr-accent-blue);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ============================================
+   RESPONSIVE UTILITIES
+   ============================================ */
+
+@media (max-width: 640px) {
+  .racing-card {
+    padding: 1rem;
+  }
+  
+  .btn-racing-primary,
+  .btn-racing-secondary {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+  }
+}
+
